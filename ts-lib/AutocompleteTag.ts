@@ -7,9 +7,19 @@ export default class AutocompleteTag<IdType extends number|string> {
     #listeners_OnChange: Array<(evt: Event) => void>;
     #tag: any;
 
-    get value(): TagItem<IdType>|null {
+    get id(): IdType|null {
          return this.#tag.value.length === 0 ?
                 null : this.#tag.value[0].id;
+    }
+
+    get item(): TagItem<IdType>|null {
+        return this.#tag.value.length === 0 ?
+                null : this.#tag.value[0];
+    }
+
+    get value(): string|null {
+         return this.#tag.value.length === 0 ?
+                null : this.#tag.value[0].value;
     }
 
     constructor(elem: HTMLInputElement) {
