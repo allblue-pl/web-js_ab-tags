@@ -42,6 +42,10 @@ export default class AutocompleteTag<IdType extends number|string> {
         return this;
     }
 
+    setDisabled(disabled: boolean): void {
+        this.#tag.setDisabled(disabled);
+    }
+
     setItems(items: Array<TagItem<IdType>>): void {
         this.#items = items.map((item) => {
             return {
