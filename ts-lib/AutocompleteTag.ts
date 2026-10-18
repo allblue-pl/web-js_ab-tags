@@ -6,6 +6,8 @@ export default class AutocompleteTag<IdType extends number|string> {
     #items: Array<TagItem<IdType>>;
     #listeners_OnChange: Array<(evt: Event) => void>;
     #tag: any;
+    #tag_Listener: (evt: Event) => void;
+    #tag_Listener_SkipCount: number;
 
     get id(): IdType|null {
          return this.#tag.value.length === 0 ?
@@ -25,15 +27,22 @@ export default class AutocompleteTag<IdType extends number|string> {
     constructor(elem: HTMLInputElement) {
         this.#items = [];
         this.#listeners_OnChange = [];
+        this.#tag_Listener_SkipCount = 0;
+        this.#tag_Listener = (evt: Event) => {
+            if (this.#tag_Listener_SkipCount > 0) {
+                this.#tag_Listener_SkipCount--;
+                return;
+            }
+
+            for (let listener of this.#listeners_OnChange)
+                listener(evt);
+        };
         this.#tag = new Tagify(elem, {
             enforceWhitelist: true,
             mode: 'select',
             whitelist: [],
                 })
-            .on("change", (evt: Event) => {
-                for (let listener of this.#listeners_OnChange)
-                    listener(evt);
-            })
+            .on("change", this.#tag_Listener);
     }
 
     addListener_OnChange(listener: (evt: Event) => void): AutocompleteTag<IdType> {
@@ -57,7 +66,7 @@ export default class AutocompleteTag<IdType extends number|string> {
         this.#tag.whitelist = items;
     }
 
-    setValue(itemId: number|string|null): void {
+    setValue(itemId: number|string|null, skipEvent: boolean = false): void {
         if (itemId === null) {
             this.#tag.removeAllTags();
             return;
@@ -65,6 +74,8 @@ export default class AutocompleteTag<IdType extends number|string> {
 
         for (let item of this.#items) {
             if (item.id === itemId) {
+                if (skipEvent)
+                    this.#tag_Listener_SkipCount++;
                 this.#tag.addTags([{
                     id: item.id,
                     value: item.value,
